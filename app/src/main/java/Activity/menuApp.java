@@ -1,9 +1,12 @@
 package Activity;
 
+import android.content.Intent;
+import android.content.IntentSender;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,9 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.dmp.R;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-
 import java.util.ArrayList;
-
 import Activity.ChatViewModel;
 import adapters.ChatAdapter;
 
@@ -27,6 +28,7 @@ public class menuApp extends AppCompatActivity {
     private TextInputEditText searchInput;
     private FloatingActionButton fabNewChat;
     private ChatViewModel chatViewModel;
+    private Button btnBack;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +39,7 @@ public class menuApp extends AppCompatActivity {
         recyclerViewChats = findViewById(R.id.recyclerViewChats);
         searchInput = findViewById(R.id.searchInput);
         fabNewChat = findViewById(R.id.fabNewChat);
+        btnBack =  findViewById(R.id.btnBack);
 
         // Inicializar el RecyclerView
         recyclerViewChats.setLayoutManager(new LinearLayoutManager(this));
@@ -67,10 +70,17 @@ public class menuApp extends AppCompatActivity {
 
         // Acción al presionar el botón de nuevo chat
         fabNewChat.setOnClickListener(view -> {
+            Intent intent = new Intent(menuApp.this, NuevoChat.class);
+            startActivity(intent);
             Toast.makeText(menuApp.this, "Nuevo chat", Toast.LENGTH_SHORT).show();
         });
 
         // Cargar chats inicialmente
         chatViewModel.loadChats();
+
+        btnBack.setOnClickListener(view -> {
+            Intent intent = new Intent(menuApp.this, MainActivity.class);
+            startActivity(intent);
+        });
     }
 }

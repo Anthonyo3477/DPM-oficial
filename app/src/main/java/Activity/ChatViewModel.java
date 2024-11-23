@@ -24,9 +24,9 @@ public class ChatViewModel extends ViewModel {
     // Método para cargar chats desde una fuente de datos (simulada)
     public void loadChats() {
         new Handler().postDelayed(() -> {
-            allChats.add(new Chat("Chat 1", "Mensaje de prueba 1"));
-            allChats.add(new Chat("Chat 2", "Mensaje de prueba 2"));
-            allChats.add(new Chat("Chat 3", "Mensaje de prueba 3"));
+            allChats.add(new Chat("Chat 1", "Mensaje de prueba 1","","",""));
+            allChats.add(new Chat("Chat 2", "Mensaje de prueba 2","","",""));
+            allChats.add(new Chat("Chat 3", "Mensaje de prueba 3","","",""));
 
             chats.setValue(allChats);
         }, 1000);
@@ -39,11 +39,11 @@ public class ChatViewModel extends ViewModel {
         } else {
             List<Chat> filteredChats = new ArrayList<>();
             for (Chat chat : allChats) {
-                if (chat.getTitle().toLowerCase().contains(query.toLowerCase())) {
+                if (chat.getNickName().toLowerCase().contains(query.toLowerCase())) {
                     filteredChats.add(chat);
                 }
             }
-            chats.setValue(filteredChats); // Actualizar LiveData con los chats filtrados
+            chats.setValue(filteredChats);
         }
     }
 }
