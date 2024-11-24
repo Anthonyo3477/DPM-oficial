@@ -1,49 +1,61 @@
 package Activity;
 
-import android.os.Handler;
-
+import android.app.Application;
+import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
+import modules.User;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import modules.Chat;
+public class ChatViewModel extends AndroidViewModel {
 
-public class ChatViewModel extends ViewModel {
+    private MutableLiveData<List<User>> users = new MutableLiveData<>();
+    private DatabaseReference mDatabase;
 
-    private final MutableLiveData<List<Chat>> chats = new MutableLiveData<>();
-    private List<Chat> allChats = new ArrayList<>();
-
-    // Método para obtener los chats
-    public LiveData<List<Chat>> getChats() {
-        return chats;
+    public ChatViewModel(Application application) {
+        super(application);
+        mDatabase = FirebaseDatabase.getInstance().getReference("usuarios");
     }
 
-    // Método para cargar chats desde una fuente de datos (simulada)
-    public void loadChats() {
-        new Handler().postDelayed(() -> {
-            allChats.add(new Chat("Chat 1", "Mensaje de prueba 1","","",""));
-            allChats.add(new Chat("Chat 2", "Mensaje de prueba 2","","",""));
-            allChats.add(new Chat("Chat 3", "Mensaje de prueba 3","","",""));
-
-            chats.setValue(allChats);
-        }, 1000);
+    public LiveData<List<User>> getUsers() {
+        return users;
     }
 
-    // Método para filtrar los chats según el texto de búsqueda
-    public void searchChats(String query) {
-        if (query.isEmpty()) {
-            chats.setValue(allChats);
-        } else {
-            List<Chat> filteredChats = new ArrayList<>();
-            for (Chat chat : allChats) {
-                if (chat.getNickName().toLowerCase().contains(query.toLowerCase())) {
-                    filteredChats.add(chat);
+    public void loadUsers() {
+        mDatabase.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                List<User> userList = new ArrayList<>();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    User user = snapshot.getValue(User.class);
+                    if (user != null) {
+                        userList.add(user);
+                    }
                 }
+                users.setValue(userList);
             }
-            chats.setValue(filteredChats);
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                // Manejar error si es necesario
+            }
+        });
+    }
+
+    public void searchUsers(String query) {
+        List<User> filteredUsers = new ArrayList<>();
+        for (User user : users.getValue()) {
+            if (user.getNickname().toLowerCase().contains(query.toLowerCase())) {
+                filteredUsers.add(user);
+            }
         }
+        users.setValue(filteredUsers);
     }
 }

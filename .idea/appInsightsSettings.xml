@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.example.dmp" />
+                  <option name="mobileSdkAppId" value="1:130713579502:android:b3d6d26e0eea7bf65ee8ff" />
+                  <option name="projectId" value="dpm-fruna" />
+                  <option name="projectNumber" value="130713579502" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
