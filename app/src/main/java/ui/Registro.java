@@ -15,6 +15,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import modules.User;
+
 public class Registro extends AppCompatActivity {
 
     private TextInputEditText txtCorreo, txtContraseña, txtConfirmarContraseña, txtNombreUsuario;
@@ -32,7 +34,7 @@ public class Registro extends AppCompatActivity {
         txtCorreo = findViewById(R.id.txtCorreo);
         txtContraseña = findViewById(R.id.txtContraseña);
         txtConfirmarContraseña = findViewById(R.id.txtConfirmarContraseña);
-        txtNombreUsuario = findViewById(R.id.txtNombreUsuario);  // Campo de nombre de usuario
+        txtNombreUsuario = findViewById(R.id.txtNombreUsuario); // Campo de nombre de usuario
         btnRegistrar = findViewById(R.id.btnRegistrar);
         btnVolver = findViewById(R.id.btnVolver);
 
@@ -41,26 +43,15 @@ public class Registro extends AppCompatActivity {
         mDatabase = FirebaseDatabase.getInstance().getReference("usuarios");
 
         // Configurar botón de registro
-        btnRegistrar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                registrarUsuario();
-            }
-        });
+        btnRegistrar.setOnClickListener(v -> registrarUsuario());
 
         // Configurar botón de volver
-        btnVolver.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Volver a la actividad anterior
-                finish();
-            }
-        });
+        btnVolver.setOnClickListener(v -> finish());
     }
 
     private void registrarUsuario() {
         String correo = txtCorreo.getText().toString().trim();
-        String nombreUsuario = txtNombreUsuario.getText().toString().trim();  // Obtener nombre de usuario
+        String nombreUsuario = txtNombreUsuario.getText().toString().trim();
         String contraseña = txtContraseña.getText().toString();
         String confirmarContraseña = txtConfirmarContraseña.getText().toString();
 
@@ -105,37 +96,30 @@ public class Registro extends AppCompatActivity {
         mAuth.createUserWithEmailAndPassword(correo, contraseña)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
-                        String userId = mAuth.getCurrentUser().getUid();
-                        Usuario nuevoUsuario = new Usuario(correo, nombreUsuario);
+                        // Obtener el ID del usuario autenticado
+                        String userId = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : "";
+                        if (!userId.isEmpty()) {
+                            User nuevoUsuario = new User( userId, correo, contraseña, nombreUsuario );
 
-                        // Guardar solo datos adicionales como el nombre de usuario, no la contraseña
-                        mDatabase.child(userId).setValue(nuevoUsuario)
-                                .addOnCompleteListener(task1 -> {
-                                    if (task1.isSuccessful()) {
-                                        // Registro exitoso
-                                        Toast.makeText(this, "Registro exitoso", Toast.LENGTH_SHORT).show();
-                                        Intent intent = new Intent(Registro.this, Login.class);
-                                        startActivity(intent);
-                                        finish();
-                                    } else {
-                                        Toast.makeText(this, "Error al guardar los datos", Toast.LENGTH_SHORT).show();
-                                    }
-                                });
-
+                            // Guardar datos del usuario en la base de datos
+                            mDatabase.child(userId).setValue(nuevoUsuario)
+                                    .addOnCompleteListener(task1 -> {
+                                        if (task1.isSuccessful()) {
+                                            // Registro exitoso
+                                            Toast.makeText(this, "Registro exitoso", Toast.LENGTH_SHORT).show();
+                                            Intent intent = new Intent(Registro.this, Login.class);
+                                            startActivity(intent);
+                                            finish();
+                                        } else {
+                                            Toast.makeText(this, "Error al guardar los datos", Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                        }
                     } else {
-                        // Si ocurre un error al registrar el usuario
-                        Toast.makeText(this, "Error de registro: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                        // Manejo de errores en caso de fallo de autenticación
+                        String errorMessage = task.getException() != null ? task.getException().getMessage() : "Error desconocido";
+                        Toast.makeText(this, "Error de registro: " + errorMessage, Toast.LENGTH_LONG).show();
                     }
                 });
-    }
-
-    public static class Usuario {
-        public String correo;
-        public String nombreUsuario;
-
-        public Usuario(String correo, String nombreUsuario) {
-            this.correo = correo;
-            this.nombreUsuario = nombreUsuario;
-        }
     }
 }

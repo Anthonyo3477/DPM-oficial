@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,11 +16,13 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import adapters.ChatAdapter;
 import modules.User;
+import modules.Chat;
 
-public class menuApp extends AppCompatActivity {
+public class menuApp extends AppCompatActivity implements ChatAdapter.OnChatClickListener { // error
 
     private RecyclerView recyclerViewChats;
     private ChatAdapter chatAdapter;
@@ -41,7 +42,7 @@ public class menuApp extends AppCompatActivity {
 
         // Inicializar el RecyclerView
         recyclerViewChats.setLayoutManager(new LinearLayoutManager(this));
-        chatAdapter = new ChatAdapter(new ArrayList<>());
+        chatAdapter = new ChatAdapter(new ArrayList<>(), this); // Pasar this como listener
         recyclerViewChats.setAdapter(chatAdapter);
 
         // Inicializar el ViewModel
@@ -49,7 +50,8 @@ public class menuApp extends AppCompatActivity {
 
         // Observar los cambios en los datos de los chats
         chatViewModel.getUsers().observe(this, users -> {
-            chatAdapter.updateChats(users); // Actualizar el RecyclerView
+            List<Chat> chats = convertUsersToChats(users);
+            chatAdapter.updateChats(chats);
         });
 
         // Configurar la barra de búsqueda
@@ -59,7 +61,7 @@ public class menuApp extends AppCompatActivity {
 
             @Override
             public void onTextChanged(CharSequence charSequence, int start, int before, int count) {
-                chatViewModel.searchUsers(charSequence.toString()); // Filtrar los usuarios
+                chatViewModel.searchUsers(charSequence.toString());
             }
 
             @Override
@@ -75,5 +77,29 @@ public class menuApp extends AppCompatActivity {
 
         // Cargar los usuarios
         chatViewModel.loadUsers();
+    }
+
+    // Método para convertir User a Chat
+    private List<Chat> convertUsersToChats(List<User> users) {
+        List<Chat> chats = new ArrayList<>();
+        for (User user : users) {
+            Chat chat = new Chat();
+            chat.setNickName(user.getNickname());
+            chats.add(chat);
+        }
+        return chats;
+    }
+
+    // Implementación de los callbacks del adaptador
+    @Override // error
+    public void onEditChat(Chat chat) {
+        Toast.makeText(this, "Editar chat: " + chat.getNickName(), Toast.LENGTH_SHORT).show();
+        // Agregar lógica para editar
+    }
+
+    @Override // error
+    public void onDeleteChat(Chat chat) {
+        Toast.makeText(this, "Eliminar chat: " + chat.getNickName(), Toast.LENGTH_SHORT).show();
+        // Agregar lógica para eliminar
     }
 }

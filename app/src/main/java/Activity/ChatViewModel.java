@@ -16,46 +16,62 @@ import java.util.List;
 
 public class ChatViewModel extends AndroidViewModel {
 
-    private MutableLiveData<List<User>> users = new MutableLiveData<>();
+    private MutableLiveData<List<User>> filteredUsers = new MutableLiveData<>();
+    private List<User> allUsers = new ArrayList<>();
     private DatabaseReference mDatabase;
+    private ValueEventListener valueEventListener;
 
     public ChatViewModel(Application application) {
         super(application);
         mDatabase = FirebaseDatabase.getInstance().getReference("usuarios");
+        loadUsers();
     }
 
     public LiveData<List<User>> getUsers() {
-        return users;
+        return filteredUsers;
     }
 
+    // Cargar usuarios desde Firebase solo una vez
     public void loadUsers() {
-        mDatabase.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                List<User> userList = new ArrayList<>();
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    User user = snapshot.getValue(User.class);
-                    if (user != null) {
-                        userList.add(user);
+        if (valueEventListener == null) {
+            valueEventListener = new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    allUsers.clear();
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                        User user = snapshot.getValue(User.class);
+                        if (user != null) {
+                            allUsers.add(user);
+                        }
                     }
+                    filteredUsers.setValue(new ArrayList<>(allUsers));
                 }
-                users.setValue(userList);
-            }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                // Manejar error si es necesario
-            }
-        });
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    filteredUsers.setValue(new ArrayList<>());
+                }
+            };
+        }
+        mDatabase.addValueEventListener(valueEventListener);
     }
 
+    // Método para eliminar el listener cuando ya no es necesario (por ejemplo, cuando la actividad se destruye)
+    public void removeListener() {
+        if (valueEventListener != null) {
+            mDatabase.removeEventListener(valueEventListener);
+            valueEventListener = null;
+        }
+    }
+
+    // Método de búsqueda de usuarios según el query
     public void searchUsers(String query) {
-        List<User> filteredUsers = new ArrayList<>();
-        for (User user : users.getValue()) {
+        List<User> results = new ArrayList<>();
+        for (User user : allUsers) {
             if (user.getNickname().toLowerCase().contains(query.toLowerCase())) {
-                filteredUsers.add(user);
+                results.add(user);
             }
         }
-        users.setValue(filteredUsers);
+        filteredUsers.setValue(results);
     }
 }
